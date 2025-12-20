@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Perfect ATS Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .app {
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+            padding: 50px;
+            margin: 20px 0;
+            position: relative;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .header h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+        .header p {
+            font-size: 1.2rem;
+            color: #666;
+            font-weight: 500;
+        }
+        .error-banner {
+            background: #fee;
+            color: #c33;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border-left: 5px solid #c33;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 35px rgba(102, 126, 234, 0.6);
+        }
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .reset-btn {
+            background: #f5f5f5;
+            color: #666;
+            border: 2px solid #ddd;
+            padding: 18px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .reset-btn:hover {
+            background: #eee;
+            border-color: #ccc;
+        }
+        .spinner-small {
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+        .spinner-large {
+            width: 70px;
+            height: 70px;
+            border: 6px solid #f0f0f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 25px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+            color: #999;
+            font-size: 1rem;
+        }
+        .cv-uploader, .job-description-input {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .section-header h2 {
+            font-size: 1.5rem;
+            color: #333;
+            font-weight: 700;
+            margin: 0;
+        }
+        .clear-btn {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .file-input {
+            display: none;
+        }
+        .upload-zone {
+            border: 3px dashed #667eea;
+            border-radius: 16px;
+            padding: 50px 30px;
+            text-align: center;
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-zone:hover, .upload-zone.dragging {
+            border-color: #764ba2;
+            transform: translateY(-2px);
+        }
+        .upload-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            color: #667eea;
+        }
+        .upload-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+            color: #667eea;
+        }
+        .upload-hint {
+            font-size: 0.95rem;
+            color: #999;
+            margin: 0;
+        }
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: #f0f2ff;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .file-name {
+            flex: 1;
+            font-weight: 600;
+            color: #333;
+        }
+        .word-count {
+            font-weight: 500;
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+        .cv-textarea, .job-textarea {
+            width: 100%;
+            padding: 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+        .cv-textarea:focus, .job-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        .tips {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe8cc 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #f59e0b;
+        }
+        .tips h3 {
+            margin: 0 0 12px 0;
+            font-size: 1rem;
+            color: #92400e;
+            font-weight: 700;
+        }
+        .tips ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #78350f;
+        }
+        .results {
+            margin-top: 40px;
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .score-card {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            padding: 40px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+        .score-circle {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 12px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: white;
+        }
+        .score-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            background: white;
+            width: 156px;
+            height: 156px;
+            border-radius: 50%;
+        }
+        .score-value {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .score-status {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 0 15px 0;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+            overflow-x: auto;
+        }
+        .tab {
+            background: none;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: #f8f9ff;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .metric-card {
+            background: white;
+            border: 2px solid #f0f0f0;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+        }
+        .keyword-list, .skill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .keyword-tag.matched, .skill-tag.matched {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-weight: 600;
+        }
+        .keyword-tag.missing, .skill-tag.missing {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-weight: 600;
+        }
+        .feedback-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feedback-list li {
+            padding: 15px 0;
+            padding-left: 30px;
+            position: relative;
+            line-height: 1.7;
+            color: #555;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .feedback-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        @media (max-width: 968px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 30px 20px;
+            }
+            .header h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- React and ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel Standalone for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useRef } = React;
+
+        // ATS Analyzer Logic (same as atsAnalyzer.js)
+        function analyzeCV(cvText, jobDescription) {
+            const cvLower = cvText.toLowerCase();
+            const jobLower = jobDescription.toLowerCase();
+            const jobKeywords = extractKeywords(jobDescription);
+            const matchedKeywords = jobKeywords.filter(k => cvLower.includes(k.toLowerCase()));
+            const missingKeywords = jobKeywords.filter(k => !cvLower.includes(k.toLowerCase()));
+            const keywordMatchPercentage = jobKeywords.length > 0 ? Math.round((matchedKeywords.length / jobKeywords.length) * 100) : 0;
+            
+            const jobSkills = extractSkills(jobDescription);
+            const cvSkills = extractSkills(cvText);
+            const matchedSkills = jobSkills.filter(s => cvSkills.some(cs => cs.toLowerCase() === s.toLowerCase()));
+            const missingSkills = jobSkills.filter(s => !cvSkills.some(cs => cs.toLowerCase() === s.toLowerCase()));
+            const skillMatchPercentage = jobSkills.length > 0 ? Math.round((matchedSkills.length / jobSkills.length) * 100) : 0;
+            
+            const sections = {
+                contact: checkContactInfo(cvText),
+                summary: /(summary|objective|profile|about|overview)/i.test(cvText),
+                experience: /(experience|work history|employment)/i.test(cvText),
+                education: /(education|academic|degree|university|college)/i.test(cvText),
+                skills: /(skills|technical skills|competencies)/i.test(cvText),
+            };
+            
+            const actionVerbs = ['achieved', 'managed', 'developed', 'implemented', 'created', 'led', 'improved', 'designed', 'executed', 'coordinated', 'analyzed', 'optimized', 'increased', 'reduced', 'established', 'built', 'delivered', 'transformed'];
+            const foundVerbs = actionVerbs.filter(v => cvLower.includes(v));
+            const numberMatches = cvText.match(/\d+/g) || [];
+            
+            let score = keywordMatchPercentage * 0.3 + skillMatchPercentage * 0.25 + (Object.values(sections).filter(Boolean).length / 6) * 100 * 0.15 + Math.min(100, (foundVerbs.length / 10) * 100) * 0.1 + (numberMatches.length >= 3 ? 100 : numberMatches.length * 33) * 0.1;
+            score = Math.round(Math.max(0, Math.min(100, score)));
+            
+            const strengths = [], issues = [], suggestions = [];
+            if (keywordMatchPercentage >= 70) {
+                strengths.push(`Excellent keyword match: ${matchedKeywords.length} out of ${jobKeywords.length} keywords found (${keywordMatchPercentage}%)`);
+            } else if (keywordMatchPercentage < 50) {
+                issues.push(`Low keyword match: Only ${matchedKeywords.length} out of ${jobKeywords.length} keywords found (${keywordMatchPercentage}%)`);
+            }
+            if (skillMatchPercentage >= 70) {
+                strengths.push(`Strong skills alignment: ${matchedSkills.length} out of ${jobSkills.length} required skills found`);
+            } else if (skillMatchPercentage < 50 && jobSkills.length > 0) {
+                issues.push(`Missing key skills: Only ${matchedSkills.length} out of ${jobSkills.length} required skills found`);
+            }
+            if (!sections.contact) issues.push('Missing contact information');
+            if (foundVerbs.length < 5) suggestions.push('Use more action verbs');
+            if (numberMatches.length < 3) issues.push('Missing quantifiable achievements');
+            
+            const improvementRoadmap = generateImprovementRoadmap({
+                score, keywordMatchPercentage, skillMatchPercentage, missingKeywords, missingSkills,
+                sections, foundVerbs, numberMatches, wordCount: cvText.split(/\s+/).filter(Boolean).length,
+                experienceMatch: 75, educationMatch: 75, jobDescription
+            });
+            
+            return {
+                score,
+                keywordMatch: { total: jobKeywords.length, matched: matchedKeywords.length, missing: missingKeywords.length, percentage: keywordMatchPercentage, matchedKeywords: matchedKeywords.slice(0, 30), missingKeywords: missingKeywords.slice(0, 20) },
+                skillMatch: { total: jobSkills.length, matched: matchedSkills.length, missing: missingSkills.length, percentage: skillMatchPercentage, matchedSkills: matchedSkills.slice(0, 20), missingSkills: missingSkills.slice(0, 15) },
+                sections,
+                strengths,
+                issues,
+                suggestions,
+                improvementRoadmap,
+                stats: { wordCount: cvText.split(/\s+/).filter(Boolean).length, actionVerbs: foundVerbs.length, quantifiableMetrics: numberMatches.length, experienceMatch: 75, educationMatch: 75 }
+            };
+        }
+        
+        function generateImprovementRoadmap({score, keywordMatchPercentage, skillMatchPercentage, missingKeywords, missingSkills, sections, foundVerbs, numberMatches, wordCount, experienceMatch, educationMatch, jobDescription}) {
+            const roadmap = { priorityActions: [], keywordsToAdd: [], phrasesToAdd: [], skillsToAdd: [], sectionsToAdd: [], actionVerbsToUse: [], quantifiableExamples: [], estimatedScore: score };
+            if (keywordMatchPercentage < 100) {
+                const topMissing = missingKeywords.slice(0, 15);
+                roadmap.keywordsToAdd = topMissing;
+                roadmap.priorityActions.push({priority: 1, category: 'Keywords', action: `Add ${topMissing.length} missing keywords`, impact: `Will increase score by ~${Math.round((topMissing.length / Math.max(1, missingKeywords.length)) * 30)} points`, keywords: topMissing});
+            }
+            if (skillMatchPercentage < 100 && missingSkills.length > 0) {
+                roadmap.skillsToAdd = missingSkills.slice(0, 10);
+                roadmap.priorityActions.push({priority: 2, category: 'Skills', action: `Add ${missingSkills.length} missing skills`, impact: `Will increase score by ~${Math.round((missingSkills.length / Math.max(1, missingSkills.length + (skillMatchPercentage/100)*missingSkills.length)) * 25)} points`, skills: missingSkills.slice(0, 10)});
+            }
+            const missingSections = [];
+            if (!sections.contact) missingSections.push('Contact Information');
+            if (!sections.summary) missingSections.push('Professional Summary');
+            if (!sections.experience) missingSections.push('Work Experience');
+            if (!sections.education) missingSections.push('Education');
+            if (!sections.skills) missingSections.push('Skills Section');
+            if (missingSections.length > 0) {
+                roadmap.sectionsToAdd = missingSections;
+                roadmap.priorityActions.push({priority: 3, category: 'Structure', action: `Add ${missingSections.length} missing sections`, impact: `Will increase score by ~${Math.round((missingSections.length/6)*15)} points`, sections: missingSections});
+            }
+            const recommendedVerbs = ['achieved','managed','developed','implemented','created','led','improved','designed','executed','coordinated','analyzed','optimized','increased','reduced','established','built','delivered','transformed','launched','initiated','supervised','mentored','collaborated','streamlined','enhanced'];
+            const verbsToAdd = recommendedVerbs.filter(v => !foundVerbs.includes(v)).slice(0, 10);
+            if (verbsToAdd.length > 0) {
+                roadmap.actionVerbsToUse = verbsToAdd;
+                roadmap.priorityActions.push({priority: 4, category: 'Action Verbs', action: `Use more action verbs (currently ${foundVerbs.length})`, impact: `Will increase score by ~${Math.round((verbsToAdd.length/10)*10)} points`, verbs: verbsToAdd});
+            }
+            if (numberMatches.length < 5) {
+                roadmap.quantifiableExamples = ['Increased sales by 25%', 'Reduced costs by $50,000', 'Managed team of 10', 'Improved efficiency by 30%', 'Generated $1M revenue', 'Completed 50+ projects'];
+                roadmap.priorityActions.push({priority: 5, category: 'Metrics', action: `Add more numbers (currently ${numberMatches.length})`, impact: `Will increase score by ~${Math.round(((5-numberMatches.length)/5)*10)} points`, examples: roadmap.quantifiableExamples});
+            }
+            const sentences = jobDescription.split(/[.!?]\s+/);
+            const phrases = new Set();
+            sentences.forEach(s => {
+                const words = s.toLowerCase().match(/\b[a-z]{3,}\b/g) || [];
+                for (let i = 0; i < words.length - 1; i++) {
+                    const p = `${words[i]} ${words[i+1]}`;
+                    if (p.length > 8 && p.length < 30) phrases.add(p);
+                }
+            });
+            roadmap.phrasesToAdd = Array.from(phrases).slice(0, 10);
+            let est = score;
+            if (keywordMatchPercentage < 100) est += Math.min(30, (missingKeywords.length/Math.max(1,missingKeywords.length))*30);
+            if (skillMatchPercentage < 100 && missingSkills.length > 0) est += Math.min(25, (missingSkills.length/Math.max(1,missingSkills.length))*25);
+            if (missingSections.length > 0) est += Math.min(15, (missingSections.length/6)*15);
+            if (foundVerbs.length < 10) est += Math.min(10, ((10-foundVerbs.length)/10)*10);
+            if (numberMatches.length < 5) est += Math.min(10, ((5-numberMatches.length)/5)*10);
+            roadmap.estimatedScore = Math.min(100, Math.round(est));
+            return roadmap;
+        }
+        
+        function extractKeywords(text) {
+            const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'been', 'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those']);
+            const words = text.toLowerCase().match(/\b[a-z]{4,}\b/g) || [];
+            const wordFreq = {};
+            words.forEach(w => { if (!stopWords.has(w)) wordFreq[w] = (wordFreq[w] || 0) + 1; });
+            const technicalTerms = ['javascript', 'python', 'java', 'react', 'angular', 'vue', 'node', 'sql', 'database', 'api', 'aws', 'cloud', 'agile', 'scrum', 'management', 'leadership', 'analytics', 'marketing', 'sales', 'development', 'engineering', 'design', 'analysis', 'strategy', 'project', 'team', 'customer', 'client', 'business', 'product', 'service', 'software', 'system', 'application', 'platform', 'experience', 'years', 'bachelor', 'master', 'degree', 'certification', 'communication', 'collaboration', 'problem', 'solving'];
+            return Object.keys(wordFreq).filter(w => wordFreq[w] >= 2 || technicalTerms.includes(w)).sort((a, b) => wordFreq[b] - wordFreq[a]).slice(0, 50);
+        }
+        
+        function extractSkills(text) {
+            const skillPatterns = [/\b(javascript|python|java|react|angular|vue|node\.?js|typescript|html|css|sql|mongodb|postgresql|mysql|aws|azure|gcp|docker|kubernetes|git|github|gitlab)\b/gi, /\b(leadership|communication|teamwork|problem solving|analytical|creative|strategic|collaboration|management|negotiation)\b/gi, /\b(excel|word|powerpoint|outlook|salesforce|jira|confluence|slack|trello|asana)\b/gi, /\b(agile|scrum|kanban|waterfall|devops|ci\/cd|tdd|bdd)\b/gi];
+            const skills = new Set();
+            skillPatterns.forEach(p => { const m = text.match(p) || []; m.forEach(s => skills.add(s.toLowerCase().trim())); });
+            return Array.from(skills).slice(0, 50);
+        }
+        
+        function checkContactInfo(text) {
+            return /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/.test(text) && /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/.test(text);
+        }
+
+        // Main App Component
+        function App() {
+            const [cvText, setCvText] = useState('');
+            const [jobDescription, setJobDescription] = useState('');
+            const [analysisData, setAnalysisData] = useState(null);
+            const [isAnalyzing, setIsAnalyzing] = useState(false);
+            const [error, setError] = useState('');
+
+            const handleAnalyze = () => {
+                if (!cvText.trim()) { setError('Please upload or paste your CV'); return; }
+                if (!jobDescription.trim()) { setError('Please paste the job description'); return; }
+                setError('');
+                setIsAnalyzing(true);
+                setTimeout(() => {
+                    try {
+                        setAnalysisData(analyzeCV(cvText, jobDescription));
+                    } catch (err) {
+                        setError('An error occurred during analysis.');
+                    } finally {
+                        setIsAnalyzing(false);
+                    }
+                }, 1500);
+            };
+
+            return (
+                <div className="app">
+                    <div className="container">
+                        <header className="header">
+                            <h1>🎯 Perfect ATS Checker</h1>
+                            <p>Compare your CV with job descriptions and optimize for ATS systems</p>
+                        </header>
+                        {error && <div className="error-banner"><span>⚠️</span><span>{error}</span></div>}
+                        <div className="input-section">
+                            <CVUploader cvText={cvText} onCVChange={setCvText} />
+                            <JobDescriptionInput jobDescription={jobDescription} onJobDescriptionChange={setJobDescription} />
+                        </div>
+                        <div className="actions">
+                            <button onClick={handleAnalyze} className="analyze-btn" disabled={!cvText.trim() || !jobDescription.trim() || isAnalyzing}>
+                                {isAnalyzing ? <><span className="spinner-small"></span>Analyzing...</> : <><span>🔍</span>Analyze CV vs Job Description</>}
+                            </button>
+                            {analysisData && <button onClick={() => { setCvText(''); setJobDescription(''); setAnalysisData(null); setError(''); }} className="reset-btn">Reset</button>}
+                        </div>
+                        {isAnalyzing && <div className="loading-overlay"><div className="loading-content"><div className="spinner-large"></div><p>Analyzing your CV...</p></div></div>}
+                        {analysisData && !isAnalyzing && <AnalysisResults data={analysisData} />}
+                        <footer className="footer"><p>Get your CV ATS-ready and increase your chances of landing interviews</p></footer>
+                    </div>
+                </div>
+            );
+        }
+
+        function CVUploader({ cvText, onCVChange }) {
+            const [file, setFile] = useState(null);
+            const [isDragging, setIsDragging] = useState(false);
+            const fileInputRef = useRef(null);
+            const handleFileChange = (selectedFile) => {
+                if (!selectedFile) return;
+                const ext = selectedFile.name.substring(selectedFile.name.lastIndexOf('.')).toLowerCase();
+                if (!['.txt', '.pdf', '.docx'].includes(ext)) { alert('Please upload .txt, .pdf, or .docx'); return; }
+                setFile(selectedFile);
+                if (ext === '.txt') {
+                    const reader = new FileReader();
+                    reader.onload = (e) => onCVChange(e.target.result);
+                    reader.readAsText(selectedFile);
+                } else {
+                    alert('For PDF/DOCX, please paste the text below or convert to .txt');
+                }
+            };
+            const wordCount = cvText.trim().split(/\s+/).filter(Boolean).length;
+            return (
+                <div className="cv-uploader">
+                    <div className="section-header">
+                        <h2>📄 Your CV / Resume</h2>
+                        {file && <button onClick={() => { setFile(null); onCVChange(''); fileInputRef.current.value = ''; }} className="clear-btn">Clear</button>}
+                    </div>
+                    <div className={`upload-zone ${isDragging ? 'dragging' : ''}`} onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }} onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }} onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFileChange(e.dataTransfer.files[0]); }} onClick={() => fileInputRef.current?.click()}>
+                        <input ref={fileInputRef} type="file" accept=".txt,.pdf,.docx" onChange={(e) => handleFileChange(e.target.files[0])} className="file-input" />
+                        <div className="upload-content">
+                            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <p className="upload-text">{file ? file.name : 'Click to upload or drag & drop'}</p>
+                            <p className="upload-hint">Supports .txt, .pdf, .docx files</p>
+                        </div>
+                    </div>
+                    {file && <div className="file-info"><span>📎</span><span className="file-name">{file.name}</span><span>{(file.size / 1024).toFixed(1)} KB</span></div>}
+                    <div className="text-input-wrapper">
+                        <label className="input-label">Or paste your CV text here: {wordCount > 0 && <span className="word-count">{wordCount} words</span>}</label>
+                        <textarea value={cvText} onChange={(e) => onCVChange(e.target.value)} placeholder="Paste your CV/resume text here..." className="cv-textarea" rows="15" />
+                    </div>
+                </div>
+            );
+        }
+
+        function JobDescriptionInput({ jobDescription, onJobDescriptionChange }) {
+            const wordCount = jobDescription.trim().split(/\s+/).filter(Boolean).length;
+            return (
+                <div className="job-description-input">
+                    <div className="section-header">
+                        <h2>💼 Job Description</h2>
+                        {wordCount > 0 && <span className="word-count">{wordCount} words</span>}
+                    </div>
+                    <div className="input-wrapper">
+                        <textarea value={jobDescription} onChange={(e) => onJobDescriptionChange(e.target.value)} placeholder="Paste the job description here..." className="job-textarea" rows="15" />
+                    </div>
+                    <div className="tips">
+                        <h3>💡 Tips for best results:</h3>
+                        <ul><li>Copy the complete job description</li><li>Include all requirements and qualifications</li><li>Make sure both CV and job description are complete</li></ul>
+                    </div>
+                </div>
+            );
+        }
+
+        function AnalysisResults({ data }) {
+            const [activeTab, setActiveTab] = useState('overview');
+            const { score, keywordMatch, skillMatch, sections, strengths, issues, suggestions, improvementRoadmap, stats } = data;
+            const getScoreColor = (s) => s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444';
+            const getScoreLabel = (s) => s >= 80 ? 'Excellent' : s >= 60 ? 'Good' : s >= 40 ? 'Needs Improvement' : 'Poor';
+            return (
+                <div className="results">
+                    <div className="score-card">
+                        <div className="score-circle" style={{ borderColor: getScoreColor(score), background: `conic-gradient(${getScoreColor(score)} ${score * 3.6}deg, #f0f0f0 ${score * 3.6}deg)` }}>
+                            <div className="score-inner">
+                                <div className="score-value" style={{ color: getScoreColor(score) }}>{score}</div>
+                                <div className="score-label">ATS Score</div>
+                            </div>
+                        </div>
+                        <div className="score-info">
+                            <h2 className="score-status" style={{ color: getScoreColor(score) }}>{getScoreLabel(score)}</h2>
+                            <p>{score >= 80 ? 'Your CV is well-optimized for ATS systems.' : score >= 60 ? 'Your CV is decent but could be improved.' : 'Your CV needs significant improvements.'}</p>
+                        </div>
+                    </div>
+                    <div className="tabs">
+                        <button className={`tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>📊 Overview</button>
+                        <button className={`tab ${activeTab === 'keywords' ? 'active' : ''}`} onClick={() => setActiveTab('keywords')}>🔑 Keywords ({keywordMatch.matched}/{keywordMatch.total})</button>
+                        <button className={`tab ${activeTab === 'skills' ? 'active' : ''}`} onClick={() => setActiveTab('skills')}>💼 Skills ({skillMatch.matched}/{skillMatch.total})</button>
+                        <button className={`tab ${activeTab === 'feedback' ? 'active' : ''}`} onClick={() => setActiveTab('feedback')}>💡 Feedback</button>
+                        <button className={`tab ${activeTab === 'improve' ? 'active' : ''}`} onClick={() => setActiveTab('improve')}>🎯 Improve to 100%</button>
+                    </div>
+                    <div className="tab-content">
+                        {activeTab === 'overview' && (
+                            <div className="overview">
+                                <div className="metrics-grid">
+                                    <div className="metric-card">
+                                        <div className="metric-label">Keyword Match</div>
+                                        <div className="metric-value" style={{ color: getScoreColor(keywordMatch.percentage) }}>{keywordMatch.percentage}%</div>
+                                        <div>{keywordMatch.matched} of {keywordMatch.total} keywords</div>
+                                    </div>
+                                    <div className="metric-card">
+                                        <div className="metric-label">Skills Match</div>
+                                        <div className="metric-value" style={{ color: getScoreColor(skillMatch.percentage) }}>{skillMatch.percentage}%</div>
+                                        <div>{skillMatch.matched} of {skillMatch.total} skills</div>
+                                    </div>
+                                    <div className="metric-card">
+                                        <div className="metric-label">CV Sections</div>
+                                        <div className="metric-value" style={{ color: getScoreColor((Object.values(sections).filter(Boolean).length / 6) * 100) }}>{Object.values(sections).filter(Boolean).length}/6</div>
+                                        <div>Essential sections</div>
+                                    </div>
+                                    <div className="metric-card">
+                                        <div className="metric-label">Action Verbs</div>
+                                        <div className="metric-value" style={{ color: getScoreColor(Math.min(100, (stats.actionVerbs / 10) * 100)) }}>{stats.actionVerbs}</div>
+                                        <div>Found in CV</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {activeTab === 'keywords' && (
+                            <div>
+                                <div style={{ marginBottom: '30px', background: '#f9fafb', padding: '25px', borderRadius: '16px' }}>
+                                    <h3 style={{ color: '#10b981', marginBottom: '15px' }}>✅ Matched Keywords ({keywordMatch.matched})</h3>
+                                    <div className="keyword-list">{keywordMatch.matchedKeywords.map((k, i) => <span key={i} className="keyword-tag matched">{k}</span>)}</div>
+                                </div>
+                                <div style={{ background: '#f9fafb', padding: '25px', borderRadius: '16px' }}>
+                                    <h3 style={{ color: '#f59e0b', marginBottom: '15px' }}>⚠️ Missing Keywords ({keywordMatch.missing})</h3>
+                                    <div className="keyword-list">{keywordMatch.missingKeywords.map((k, i) => <span key={i} className="keyword-tag missing">{k}</span>)}</div>
+                                </div>
+                            </div>
+                        )}
+                        {activeTab === 'skills' && (
+                            <div>
+                                <div style={{ marginBottom: '30px', background: '#f9fafb', padding: '25px', borderRadius: '16px' }}>
+                                    <h3 style={{ color: '#10b981', marginBottom: '15px' }}>✅ Matched Skills ({skillMatch.matched})</h3>
+                                    <div className="skill-list">{skillMatch.matchedSkills.map((s, i) => <span key={i} className="skill-tag matched">{s}</span>)}</div>
+                                </div>
+                                <div style={{ background: '#f9fafb', padding: '25px', borderRadius: '16px' }}>
+                                    <h3 style={{ color: '#f59e0b', marginBottom: '15px' }}>⚠️ Missing Skills ({skillMatch.missing})</h3>
+                                    <div className="skill-list">{skillMatch.missingSkills.map((s, i) => <span key={i} className="skill-tag missing">{s}</span>)}</div>
+                                </div>
+                            </div>
+                        )}
+                        {activeTab === 'feedback' && (
+                            <div>
+                                {strengths.length > 0 && <div style={{ marginBottom: '25px', background: '#f9fafb', padding: '25px', borderRadius: '16px', borderLeft: '4px solid #10b981' }}><h3 style={{ color: '#10b981', marginBottom: '15px' }}>✅ Strengths</h3><ul className="feedback-list">{strengths.map((s, i) => <li key={i}>{s}</li>)}</ul></div>}
+                                {issues.length > 0 && <div style={{ marginBottom: '25px', background: '#f9fafb', padding: '25px', borderRadius: '16px', borderLeft: '4px solid #f59e0b' }}><h3 style={{ color: '#f59e0b', marginBottom: '15px' }}>⚠️ Critical Issues</h3><ul className="feedback-list">{issues.map((i, idx) => <li key={idx}>{i}</li>)}</ul></div>}
+                                {suggestions.length > 0 && <div style={{ background: '#f9fafb', padding: '25px', borderRadius: '16px', borderLeft: '4px solid #667eea' }}><h3 style={{ color: '#667eea', marginBottom: '15px' }}>💡 Suggestions</h3><ul className="feedback-list">{suggestions.map((s, i) => <li key={i}>{s}</li>)}</ul></div>}
+                            </div>
+                        )}
+                        {activeTab === 'improve' && improvementRoadmap && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                                <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '30px', borderRadius: '16px', textAlign: 'center' }}>
+                                    <h2 style={{ margin: '0 0 20px 0', fontSize: '2rem' }}>🚀 Roadmap to 100% ATS Score</h2>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', fontSize: '1.3rem', fontWeight: '700' }}>
+                                        <span style={{ background: 'rgba(255,255,255,0.2)', padding: '10px 20px', borderRadius: '8px' }}>Current: {score}%</span>
+                                        <span style={{ fontSize: '2rem' }}>→</span>
+                                        <span style={{ background: 'rgba(255,255,255,0.3)', padding: '10px 20px', borderRadius: '8px' }}>Projected: {improvementRoadmap.estimatedScore}%</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 style={{ marginBottom: '15px', fontSize: '1.5rem' }}>📋 Priority Actions</h3>
+                                    {improvementRoadmap.priorityActions.map((action, idx) => (
+                                        <div key={idx} style={{ background: 'white', border: '2px solid #e0e0e0', borderLeft: '5px solid #667eea', borderRadius: '12px', padding: '25px', marginBottom: '20px' }}>
+                                            <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '700', marginBottom: '15px' }}>Priority {action.priority}</span>
+                                            <h4 style={{ margin: '0 0 10px 0', fontSize: '1.2rem' }}>{action.category}: {action.action}</h4>
+                                            <p style={{ color: '#10b981', fontWeight: '600', margin: '0 0 20px 0' }}>{action.impact}</p>
+                                            {action.keywords && action.keywords.length > 0 && (
+                                                <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #f0f0f0' }}>
+                                                    <strong>Keywords to add:</strong>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px' }}>
+                                                        {action.keywords.map((kw, i) => <span key={i} style={{ background: '#f0f2ff', color: '#667eea', padding: '8px 16px', borderRadius: '20px', fontSize: '0.9rem', fontWeight: '600' }}>{kw}</span>)}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {action.skills && action.skills.length > 0 && (
+                                                <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #f0f0f0' }}>
+                                                    <strong>Skills to add:</strong>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px' }}>
+                                                        {action.skills.map((sk, i) => <span key={i} style={{ background: '#dbeafe', color: '#2563eb', padding: '8px 16px', borderRadius: '20px', fontSize: '0.9rem', fontWeight: '600' }}>{sk}</span>)}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {action.verbs && action.verbs.length > 0 && (
+                                                <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #f0f0f0' }}>
+                                                    <strong>Action verbs to use:</strong>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px' }}>
+                                                        {action.verbs.map((v, i) => <span key={i} style={{ background: '#fef3c7', color: '#d97706', padding: '8px 16px', borderRadius: '20px', fontSize: '0.9rem', fontWeight: '600' }}>{v}</span>)}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {action.examples && action.examples.length > 0 && (
+                                                <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #f0f0f0' }}>
+                                                    <strong>Example phrases:</strong>
+                                                    <ul style={{ listStyle: 'none', padding: 0, marginTop: '12px' }}>
+                                                        {action.examples.map((ex, i) => <li key={i} style={{ padding: '8px 0', paddingLeft: '25px', position: 'relative' }}><span style={{ position: 'absolute', left: 0 }}>💡</span>"{ex}"</li>)}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                {improvementRoadmap.keywordsToAdd.length > 0 && (
+                                    <div style={{ background: '#f9fafb', padding: '25px', borderRadius: '16px', borderLeft: '4px solid #667eea' }}>
+                                        <h3 style={{ margin: '0 0 12px 0', fontSize: '1.4rem' }}>🔑 Top Keywords to Add</h3>
+                                        <p style={{ color: '#666', marginBottom: '15px' }}>Add these keywords naturally throughout your CV.</p>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                                            {improvementRoadmap.keywordsToAdd.map((kw, i) => <span key={i} style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: 'white', padding: '10px 18px', borderRadius: '25px', fontWeight: '600' }}>{kw}</span>)}
+                                        </div>
+                                    </div>
+                                )}
+                                {improvementRoadmap.phrasesToAdd.length > 0 && (
+                                    <div style={{ background: '#f9fafb', padding: '25px', borderRadius: '16px', borderLeft: '4px solid #667eea' }}>
+                                        <h3 style={{ margin: '0 0 12px 0', fontSize: '1.4rem' }}>💬 Key Phrases from Job Description</h3>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '15px' }}>
+                                            {improvementRoadmap.phrasesToAdd.map((p, i) => <div key={i} style={{ background: 'white', padding: '15px 20px', borderRadius: '8px', borderLeft: '4px solid #667eea', fontStyle: 'italic' }}>"{p}"</div>)}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
