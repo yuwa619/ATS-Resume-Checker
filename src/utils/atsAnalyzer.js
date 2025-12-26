@@ -92,7 +92,11 @@ export function analyzeCV(cvText, jobDescription) {
     'enhanced',
   ]
 
-  const foundVerbs = actionVerbs.filter((verb) => cvLower.includes(verb))
+  // Match action verbs with word boundaries (case-insensitive)
+  const foundVerbs = actionVerbs.filter((verb) => {
+    const regex = new RegExp(`\\b${verb.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+    return regex.test(cvText)
+  })
   const verbScore = Math.min(100, (foundVerbs.length / 10) * 100)
 
   // Check for quantifiable achievements
