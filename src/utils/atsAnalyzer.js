@@ -7,13 +7,19 @@ export function analyzeCV(cvText, jobDescription) {
   const jobKeywords = extractKeywords(jobDescription)
   const cvKeywords = extractKeywords(cvText)
 
-  // Find matched and missing keywords
-  const matchedKeywords = jobKeywords.filter((keyword) =>
-    cvLower.includes(keyword.toLowerCase())
-  )
-  const missingKeywords = jobKeywords.filter(
-    (keyword) => !cvLower.includes(keyword.toLowerCase())
-  )
+  // Find matched and missing keywords (case-insensitive with word boundaries)
+  const matchedKeywords = jobKeywords.filter((keyword) => {
+    const keywordLower = keyword.toLowerCase()
+    // Use word boundary regex for exact word matching (case-insensitive)
+    const regex = new RegExp(`\\b${keywordLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+    return regex.test(cvText)
+  })
+  const missingKeywords = jobKeywords.filter((keyword) => {
+    const keywordLower = keyword.toLowerCase()
+    // Use word boundary regex for exact word matching (case-insensitive)
+    const regex = new RegExp(`\\b${keywordLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+    return !regex.test(cvText)
+  })
 
   // Calculate keyword match percentage
   const keywordMatchPercentage =

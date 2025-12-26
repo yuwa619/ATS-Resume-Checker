@@ -127,3 +127,4 @@ function ResumeUploader({ onAnalysis, onAnalyzing }) {
 export default ResumeUploader
 
 
+

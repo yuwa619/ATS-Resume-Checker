@@ -37,3 +37,4 @@ function JobDescriptionInput({ jobDescription, onJobDescriptionChange }) {
 
 export default JobDescriptionInput
 
+
